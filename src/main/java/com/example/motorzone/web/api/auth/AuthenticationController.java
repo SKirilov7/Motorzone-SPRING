@@ -1,9 +1,10 @@
 package com.example.motorzone.web.api.auth;
 
+import com.example.motorzone.exceptions.UserPasswordsDoesNotMatchException;
 import com.example.motorzone.models.dto.user.LoginResponseDTO;
 import com.example.motorzone.models.dto.user.LoginUserDTO;
 import com.example.motorzone.models.dto.user.RegisterUserDTO;
-import com.example.motorzone.models.entities.User.User;
+import com.example.motorzone.models.dto.user.UserDTO;
 import com.example.motorzone.services.impl.AuthenticationServiceImpl;
 import com.example.motorzone.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +29,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDTO registerUserDto) {
+    public ResponseEntity<UserDTO> register(@RequestBody RegisterUserDTO registerUserDto) {
         if (!registerUserDto.getPassword().equals(registerUserDto.getConfirmPassword())) {
-            // make a global exception handler and throw an error.
+            throw new UserPasswordsDoesNotMatchException("The passwords do not match!");
         }
 
-        User registeredUser = authenticationService.register(registerUserDto);
+        UserDTO registeredUser = authenticationService.register(registerUserDto);
 
         return ResponseEntity.ok(registeredUser);
     }

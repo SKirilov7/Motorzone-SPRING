@@ -2,6 +2,7 @@ package com.example.motorzone.models.entities.User;
 
 import com.example.motorzone.models.entities.car.CarOffer;
 import com.example.motorzone.models.entities.motorcycle.MotorcycleOffer;
+import com.example.motorzone.models.enums.UserRoleEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
@@ -23,7 +24,7 @@ public class User {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -189,6 +190,10 @@ public class User {
     public User setFavoriteMotorcycleOffers(List<MotorcycleOffer> favoriteMotorcycleOffers) {
         this.favoriteMotorcycleOffers = favoriteMotorcycleOffers;
         return this;
+    }
+
+    public void addRole(Role role) {
+        this.roles.add(role);
     }
 
 }

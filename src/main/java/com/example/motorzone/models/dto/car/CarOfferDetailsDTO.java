@@ -60,6 +60,15 @@ public class CarOfferDetailsDTO {
         this.extras = extras;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public CarOfferDetailsDTO setId(Long id) {
+        this.id = id;
+        return this;
+    }
+
     public String getCategory() {
         return category;
     }

@@ -1,5 +1,6 @@
 package com.example.motorzone.models.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -12,13 +13,17 @@ public class RegisterUserDTO {
 
     @NotEmpty(message = "First name is required")
     @Size(min = 2, max = 20)
+    @JsonProperty("first_name")
     private String firstName;
     @NotEmpty(message = "Last name is required")
     @Size(min = 2, max = 20)
+    @JsonProperty("last_name")
     private String lastName;
     @NotEmpty(message = "Password is required")
     @Size(min = 5)
     private String password;
+
+    @JsonProperty("confirm_password")
     private String confirmPassword;
 
     public String getEmail() {
@@ -66,5 +71,4 @@ public class RegisterUserDTO {
         return this;
     }
 
-    // getters and setters here...
 }

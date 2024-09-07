@@ -1,9 +1,6 @@
 package com.example.motorzone.services.impl;
 
-import com.example.motorzone.exceptions.CarOfferNotFoundException;
-import com.example.motorzone.exceptions.ModelNotExistingException;
-import com.example.motorzone.exceptions.MonthNotValidException;
-import com.example.motorzone.exceptions.UserNotFoundException;
+import com.example.motorzone.exceptions.*;
 import com.example.motorzone.models.dto.car.CarOfferDetailsDTO;
 import com.example.motorzone.models.dto.car.CreateCarOfferDTO;
 import com.example.motorzone.models.dto.car.UpdateCarOfferDTO;
@@ -21,15 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.Month;
-import java.util.Locale;
 import java.util.Optional;
 
 @Service
 public class CarOfferServiceImpl implements CarOfferService {
 
     private final CarOfferRepository carOfferRepository;
-    private final UserRepository userRepository;
     private final ModelRepository modelRepository;
     private final ModelMapper modelMapper;
     private final CurrentUserServiceImpl currentUserService;
@@ -37,13 +31,22 @@ public class CarOfferServiceImpl implements CarOfferService {
 
 
     @Autowired
-    public CarOfferServiceImpl(CarOfferRepository carOfferRepository, ModelMapper modelMapper, CurrentUserServiceImpl currentUserService, UserRepository userRepository, ModelRepository modelRepository, EnumParserServiceImpl enumParserService) {
+    public CarOfferServiceImpl(CarOfferRepository carOfferRepository, ModelMapper modelMapper, CurrentUserServiceImpl currentUserService, ModelRepository modelRepository, EnumParserServiceImpl enumParserService) {
         this.carOfferRepository = carOfferRepository;
         this.modelMapper = modelMapper;
         this.currentUserService = currentUserService;
-        this.userRepository = userRepository;
         this.modelRepository = modelRepository;
         this.enumParserService = enumParserService;
+    }
+
+    public CarOfferDetailsDTO getById(Long id) {
+        Optional<CarOffer> optionalCarOffer = carOfferRepository.findById(id);
+
+        if (optionalCarOffer.isEmpty()) {
+            throw new CarOfferNotFoundException("A car offer with id " + id + " does not exist");
+        }
+
+        return modelMapper.map(optionalCarOffer.get(), CarOfferDetailsDTO.class);
     }
 
     @Override
@@ -53,14 +56,7 @@ public class CarOfferServiceImpl implements CarOfferService {
             throw new MonthNotValidException("The month you entered " + carOfferDto.getMonthOfManufacture() + " is not a valid month.");
         }
 
-        String currentUserEmail = currentUserService.getCurrentUsersEmail();
-
-        Optional<User> currentUserEntity = userRepository.findByEmail(currentUserEmail);
-
-        if (currentUserEntity.isEmpty()) {
-            //extra security layer, because the request should not be able to get to this point if the user is not existing...
-            throw new UserNotFoundException("The user you try to create a offer with doesn't exist");
-        }
+        User currentUser = currentUserService.getCurrentUser();
 
         Model existingModel = modelRepository.findById(carOfferDto.getModelId())
                 .orElseThrow(() -> new ModelNotExistingException("A model with id " + carOfferDto.getModelId() + " does not exist!"));
@@ -76,7 +72,7 @@ public class CarOfferServiceImpl implements CarOfferService {
                 .setExtras(enumParserService.parseExtrasEnum(carOfferDto.getExtras()));
 
         carOfferEntity
-                .setSeller(currentUserEntity.get())
+                .setSeller(currentUser)
                 .setModel(existingModel)
                 .setCategory(enumParserService.parseCategoryEnum(carOfferDto.getCategory()).toString())
                 .setEngineType(enumParserService.parseEngineTypeEnum(carOfferDto.getEngineType()))
@@ -99,16 +95,7 @@ public class CarOfferServiceImpl implements CarOfferService {
 
         CarOffer carOffer = optionalCarOffer.get();
 
-        String currentUserEmail = currentUserService.getCurrentUsersEmail();
-
-        Optional<User> currentUserEntity = userRepository.findByEmail(currentUserEmail);
-
-        if (currentUserEntity.isEmpty()) {
-            //extra security layer, because the request should not be able to get to this point if the user is not existing...
-            throw new UserNotFoundException("The user you try to update a offer with doesn't exist");
-        }
-
-        User currentUser = currentUserEntity.get();
+        User currentUser = currentUserService.getCurrentUser();
 
         if (!currentUser.getId().equals(carOffer.getSeller().getId())) {
             throw new CarOfferNotFoundException("A car offer with id " + id + " does not exists.");
@@ -191,6 +178,25 @@ public class CarOfferServiceImpl implements CarOfferService {
         carOfferRepository.save(carOffer);
 
         return modelMapper.map(carOffer, CarOfferDetailsDTO.class);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        Optional<CarOffer> optionalCarOffer = carOfferRepository.findById(id);
+
+        if (optionalCarOffer.isEmpty()) {
+            throw new CarOfferNotFoundException("A car offer with id " + id + " does not exists.");
+        }
+
+        CarOffer carOffer = optionalCarOffer.get();
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if (!currentUser.getId().equals(carOffer.getSeller().getId()) && !currentUserService.isAdmin()) {
+            throw new GenericDoNotHavePermissionsException("You don't have permissions to delete offer with id " + id);
+        }
+
+        carOfferRepository.deleteById(id);
     }
 
 }

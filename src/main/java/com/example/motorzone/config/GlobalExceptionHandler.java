@@ -1,9 +1,9 @@
 package com.example.motorzone.config;
 
 import com.example.motorzone.exceptions.*;
-import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -67,5 +67,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CarOfferNotFoundException.class)
     public ResponseEntity<String> handleCarOfferNotFoundException(CarOfferNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(GenericDoNotHavePermissionsException.class)
+    public ResponseEntity<String> handleGenericDoNotHavePermissionsException(GenericDoNotHavePermissionsException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(UserPasswordsDoesNotMatchException.class)
+    public ResponseEntity<String> handleUserPasswordsDoesNotMatchException(UserPasswordsDoesNotMatchException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserRoleNotValidException.class)
+    public ResponseEntity<String> handleUserRoleNotValidException(UserRoleNotValidException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return new ResponseEntity<>("You have a problem with your JSON, please review it.", HttpStatus.BAD_REQUEST);
     }
 }

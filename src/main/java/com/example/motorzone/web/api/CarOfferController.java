@@ -6,7 +6,6 @@ import com.example.motorzone.models.dto.car.UpdateCarOfferDTO;
 import com.example.motorzone.services.CarOfferService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +31,11 @@ public class CarOfferController {
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<CarOfferDetailsDTO> getById(@PathVariable("id") Long id) {
+        return new ResponseEntity<>(carOfferService.getById(id), HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<CarOfferDetailsDTO> create(@Valid @RequestBody CreateCarOfferDTO carOfferDto) {
         return new ResponseEntity<>(carOfferService.create(carOfferDto), HttpStatus.CREATED);
@@ -43,5 +47,12 @@ public class CarOfferController {
             @Valid @RequestBody UpdateCarOfferDTO carOfferDto
     ) {
         return new ResponseEntity<>(carOfferService.update(id, carOfferDto), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
+        carOfferService.deleteById(id);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

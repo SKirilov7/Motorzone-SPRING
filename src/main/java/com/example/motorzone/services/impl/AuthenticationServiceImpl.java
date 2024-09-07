@@ -2,6 +2,7 @@ package com.example.motorzone.services.impl;
 
 import com.example.motorzone.models.dto.user.LoginUserDTO;
 import com.example.motorzone.models.dto.user.RegisterUserDTO;
+import com.example.motorzone.models.dto.user.UserDTO;
 import com.example.motorzone.models.entities.User.User;
 import com.example.motorzone.repositories.UserRepository;
 import org.modelmapper.ModelMapper;
@@ -16,14 +17,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthenticationServiceImpl {
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
-
     private final UserDetailsService userDetailsService;
-
     private final ModelMapper modelMapper;
+    private final EnumParserServiceImpl enumParserService;
 
     @Autowired
     public AuthenticationServiceImpl (
@@ -31,23 +29,25 @@ public class AuthenticationServiceImpl {
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
             UserDetailsService userDetailsService,
-            ModelMapper modelMapper
+            ModelMapper modelMapper,
+            EnumParserServiceImpl enumParserService
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.userDetailsService = userDetailsService;
         this.modelMapper = modelMapper;
+        this.enumParserService = enumParserService;
     }
 
-    public User register(RegisterUserDTO input) {
+    public UserDTO register(RegisterUserDTO input) {
         input.setPassword(passwordEncoder.encode(input.getPassword()));
 
         User user = modelMapper.map(input, User.class);
+        user.addRole(enumParserService.parseUserRole("ROLE_USER"));
+        userRepository.save(user);
 
-        // map it to dto so we don't return data that should not be seen.
-
-        return userRepository.save(user);
+        return modelMapper.map(user, UserDTO.class);
     }
 
     public UserDetails login(LoginUserDTO input) {

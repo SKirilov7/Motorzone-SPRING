@@ -1,17 +1,26 @@
 package com.example.motorzone.services.impl;
 
 import com.example.motorzone.exceptions.InvalidEnumValueException;
+import com.example.motorzone.exceptions.UserRoleNotValidException;
+import com.example.motorzone.models.entities.User.Role;
 import com.example.motorzone.models.enums.*;
+import com.example.motorzone.repositories.RoleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 @Service
 public class EnumParserServiceImpl {
+
+    private final RoleRepository roleRepository;
+
+    @Autowired
+    public EnumParserServiceImpl(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
+    }
+
     public List<CarExtrasEnum> parseExtrasEnum(List<String> extras) {
         if (extras == null || extras.isEmpty()) {
             return new ArrayList<>();
@@ -69,6 +78,22 @@ public class EnumParserServiceImpl {
             return true;
         } catch (IllegalArgumentException e) {
             return false;
+        }
+    }
+
+    public Role parseUserRole(String userRole) {
+        try {
+            UserRoleEnum userRoleEnum = UserRoleEnum.valueOf(userRole.toUpperCase());
+
+            Optional<Role> optionalRole = roleRepository.findByName(userRoleEnum);
+
+            if (optionalRole.isEmpty()) {
+                throw new UserRoleNotValidException("Invalid user role.");
+            }
+
+            return optionalRole.get();
+        } catch (IllegalArgumentException e) {
+            throw new UserRoleNotValidException("Invalid user role.");
         }
     }
 }

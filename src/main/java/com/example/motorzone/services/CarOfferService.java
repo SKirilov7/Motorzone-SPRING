@@ -6,7 +6,11 @@ import com.example.motorzone.models.dto.car.UpdateCarOfferDTO;
 
 public interface CarOfferService {
 
+    CarOfferDetailsDTO getById(Long id);
+
     CarOfferDetailsDTO create(CreateCarOfferDTO carOfferDto);
 
     CarOfferDetailsDTO update(Long id, UpdateCarOfferDTO carOfferDTO);
+
+    void deleteById(Long id);
 }

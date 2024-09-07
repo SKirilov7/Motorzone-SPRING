@@ -1,8 +1,11 @@
 package com.example.motorzone.models.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class LoginResponseDTO {
     private String token;
 
+    @JsonProperty("expires_in")
     private long expiresIn;
 
     public String getToken() {
