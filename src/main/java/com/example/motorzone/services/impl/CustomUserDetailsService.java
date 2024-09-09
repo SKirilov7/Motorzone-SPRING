@@ -10,15 +10,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-
-
     @Autowired
     private UserRepository userRepository;
 
@@ -32,7 +29,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = optionalUser.get();
 
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), getAuthorities(user));
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                user.isActive(),
+                true, // accountNonExpired
+                true, // credentialsNonExpired
+                true, // accountNonLocked
+                getAuthorities(user) // user roles/authorities
+        );
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(User user) {
