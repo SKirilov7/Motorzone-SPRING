@@ -39,6 +39,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "is_active", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
+    private boolean isActive = true;
+
     @OneToMany(
             mappedBy = "seller",
             fetch = FetchType.LAZY,
@@ -79,7 +82,7 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String email, String firstName, String lastName, Set<Role> roles, String imageUrl, String password, List<CarOffer> myCarOffers, List<MotorcycleOffer> myMotorcycleOffers, List<MotorcycleOffer> favoriteCarOffers, List<MotorcycleOffer> favoriteMotorcycleOffers) {
+    public User(Long id, String email, String firstName, String lastName, Set<Role> roles, String imageUrl, String password, boolean isActive, List<CarOffer> myCarOffers, List<MotorcycleOffer> myMotorcycleOffers, List<MotorcycleOffer> favoriteCarOffers, List<MotorcycleOffer> favoriteMotorcycleOffers) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -87,6 +90,7 @@ public class User {
         this.roles = roles;
         this.imageUrl = imageUrl;
         this.password = password;
+        this.isActive = isActive;
         this.myCarOffers = myCarOffers;
         this.myMotorcycleOffers = myMotorcycleOffers;
         this.favoriteCarOffers = favoriteCarOffers;
@@ -189,6 +193,15 @@ public class User {
 
     public User setFavoriteMotorcycleOffers(List<MotorcycleOffer> favoriteMotorcycleOffers) {
         this.favoriteMotorcycleOffers = favoriteMotorcycleOffers;
+        return this;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public User setActive(boolean active) {
+        isActive = active;
         return this;
     }
 
