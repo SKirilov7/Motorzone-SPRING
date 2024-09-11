@@ -1,5 +1,6 @@
 package com.example.motorzone.models.entities.User;
 
+import com.example.motorzone.models.entities.car.CarImage;
 import com.example.motorzone.models.entities.car.CarOffer;
 import com.example.motorzone.models.entities.motorcycle.MotorcycleOffer;
 import com.example.motorzone.models.enums.UserRoleEnum;
@@ -32,9 +33,13 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "image_url", length = 512)
-    @Size(min = 8, max = 512)
-    private String imageUrl;
+    @OneToOne(
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @JoinColumn(name = "avatar_id", referencedColumnName = "id")
+    private UserAvatarImage avatar;
 
     @Column(nullable = false)
     private String password;
@@ -82,21 +87,6 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String email, String firstName, String lastName, Set<Role> roles, String imageUrl, String password, boolean isActive, List<CarOffer> myCarOffers, List<MotorcycleOffer> myMotorcycleOffers, List<MotorcycleOffer> favoriteCarOffers, List<MotorcycleOffer> favoriteMotorcycleOffers) {
-        this.id = id;
-        this.email = email;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.roles = roles;
-        this.imageUrl = imageUrl;
-        this.password = password;
-        this.isActive = isActive;
-        this.myCarOffers = myCarOffers;
-        this.myMotorcycleOffers = myMotorcycleOffers;
-        this.favoriteCarOffers = favoriteCarOffers;
-        this.favoriteMotorcycleOffers = favoriteMotorcycleOffers;
-    }
-
     public Long getId() {
         return id;
     }
@@ -142,12 +132,12 @@ public class User {
         return this;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public UserAvatarImage getAvatar() {
+        return avatar;
     }
 
-    public User setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public User setAvatar(UserAvatarImage avatar) {
+        this.avatar = avatar;
         return this;
     }
 
@@ -157,6 +147,15 @@ public class User {
 
     public User setPassword(String password) {
         this.password = password;
+        return this;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public User setActive(boolean active) {
+        isActive = active;
         return this;
     }
 
@@ -193,15 +192,6 @@ public class User {
 
     public User setFavoriteMotorcycleOffers(List<MotorcycleOffer> favoriteMotorcycleOffers) {
         this.favoriteMotorcycleOffers = favoriteMotorcycleOffers;
-        return this;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public User setActive(boolean active) {
-        isActive = active;
         return this;
     }
 

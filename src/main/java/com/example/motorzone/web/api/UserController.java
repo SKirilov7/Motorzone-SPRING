@@ -1,6 +1,8 @@
 package com.example.motorzone.web.api;
 
 import com.example.motorzone.models.dto.user.UpdateUserDTO;
+import com.example.motorzone.models.dto.user.UploadUserAvatarDTO;
+import com.example.motorzone.models.dto.user.UserBasicAvatarDTO;
 import com.example.motorzone.models.dto.user.UserDTO;
 import com.example.motorzone.services.UserService;
 import jakarta.validation.Valid;
@@ -25,7 +27,13 @@ public class UserController {
     public ResponseEntity<UserDTO> update(@PathVariable("id") Long id, @Valid @RequestBody UpdateUserDTO userDto) {
         return new ResponseEntity<>(userService.update(id, userDto), HttpStatus.OK);
     }
-    @DeleteMapping("/disable")
+
+    @PatchMapping("/avatar")
+    public ResponseEntity<UserBasicAvatarDTO> updateAvatar(@PathVariable("id") Long id, @Valid @ModelAttribute UploadUserAvatarDTO userAvatarDto) {
+        return new ResponseEntity<>(userService.uploadAvatar(id, userAvatarDto), HttpStatus.OK);
+    }
+
+    @PatchMapping("/disable")
     public ResponseEntity<Void> disableById(@PathVariable("id") Long id) {
         // think do you need it...
         userService.disableById(id);

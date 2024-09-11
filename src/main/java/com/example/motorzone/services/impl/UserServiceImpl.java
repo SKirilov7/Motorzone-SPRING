@@ -4,8 +4,13 @@ import com.example.motorzone.exceptions.GenericDoNotHavePermissionsException;
 import com.example.motorzone.exceptions.UserNotFoundException;
 import com.example.motorzone.exceptions.UserPasswordsDoesNotMatchException;
 import com.example.motorzone.models.dto.user.UpdateUserDTO;
+import com.example.motorzone.models.dto.user.UploadUserAvatarDTO;
+import com.example.motorzone.models.dto.user.UserBasicAvatarDTO;
 import com.example.motorzone.models.dto.user.UserDTO;
+import com.example.motorzone.models.entities.User.UserAvatarImage;
+import com.example.motorzone.models.projections.UserAvatarProjection;
 import com.example.motorzone.repositories.CarOfferRepository;
+import com.example.motorzone.repositories.UserAvatarImageRepository;
 import com.example.motorzone.repositories.UserRepository;
 import com.example.motorzone.services.UserService;
 import com.example.motorzone.models.entities.User.User;
@@ -15,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -26,13 +32,19 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
+    private final UserAvatarImageRepository userAvatarRepository;
+
+    private final CloudinaryServiceImpl cloudinaryService;
+
     @Autowired
-    public UserServiceImpl(CurrentUserServiceImpl currentUserService, CarOfferRepository carOfferRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper) {
+    public UserServiceImpl(CurrentUserServiceImpl currentUserService, CarOfferRepository carOfferRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, ModelMapper modelMapper, UserAvatarImageRepository userAvatarRepository, CloudinaryServiceImpl cloudinaryService) {
         this.currentUserService = currentUserService;
         this.carOfferRepository = carOfferRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.modelMapper = modelMapper;
+        this.userAvatarRepository = userAvatarRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
@@ -87,5 +99,47 @@ public class UserServiceImpl implements UserService {
         carOfferRepository.deleteAllBySellerId(id);
         // delete all motorcycle offers/favourite offers ...
         userRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public UserBasicAvatarDTO uploadAvatar(Long id, UploadUserAvatarDTO userAvatarDto) {
+        if (currentUserService.getCurrentUser().getId().compareTo(id) != 0) {
+            throw new GenericDoNotHavePermissionsException("You can not delete user with id " + id + " as you don't have permissions");
+        }
+
+        String imageUrl = "";
+        try {
+            imageUrl = cloudinaryService.uploadImage(userAvatarDto.getImg());
+        } catch (IOException e) {
+            throw new RuntimeException("Sorry but we can't upload the file you requested.");
+        }
+
+        if (imageUrl.isBlank()) {
+            throw new RuntimeException("Sorry but we can't upload the file you requested.");
+        }
+
+        Optional<UserAvatarProjection> optionalUser = userRepository.findUserIdAndAvatarById(id);
+
+        if (optionalUser.isEmpty()) {
+            throw new UserNotFoundException("A user with id " + id + " does not exists");
+        }
+
+        UserAvatarProjection user = optionalUser.get();
+
+        UserAvatarImage newAvatar = new UserAvatarImage();
+        newAvatar
+                .setName(userAvatarDto.getImg().getOriginalFilename())
+                .setUrl(imageUrl);
+
+        if (user.getAvatar() != null) {
+            newAvatar.setId(user.getAvatar().getId());
+            userAvatarRepository.save(newAvatar);
+        } else {
+            UserAvatarImage userImage = userAvatarRepository.save(newAvatar);
+            userRepository.updateUserAvatar(id, userImage);
+        }
+
+        return new UserBasicAvatarDTO(id, userAvatarDto.getImg().getOriginalFilename(), imageUrl);
     }
 }
