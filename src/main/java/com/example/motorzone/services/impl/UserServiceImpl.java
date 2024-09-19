@@ -127,15 +127,20 @@ public class UserServiceImpl implements UserService {
 
         UserAvatarProjection user = optionalUser.get();
 
-        UserAvatarImage newAvatar = new UserAvatarImage();
-        newAvatar
-                .setName(userAvatarDto.getImg().getOriginalFilename())
-                .setUrl(imageUrl);
-
         if (user.getAvatar() != null) {
-            newAvatar.setId(user.getAvatar().getId());
-            userAvatarRepository.save(newAvatar);
+            UserAvatarImage existingUserAvatar = user.getAvatar();
+            existingUserAvatar
+                    .setId(user.getAvatar().getId())
+                    .setName(userAvatarDto.getImg().getOriginalFilename())
+                    .setUrl(imageUrl);
+
+            userAvatarRepository.save(existingUserAvatar);
         } else {
+            UserAvatarImage newAvatar = new UserAvatarImage();
+            newAvatar
+                    .setName(userAvatarDto.getImg().getOriginalFilename())
+                    .setUrl(imageUrl);
+
             UserAvatarImage userImage = userAvatarRepository.save(newAvatar);
             userRepository.updateUserAvatar(id, userImage);
         }

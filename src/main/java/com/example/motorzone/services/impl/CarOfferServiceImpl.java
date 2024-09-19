@@ -1,44 +1,76 @@
 package com.example.motorzone.services.impl;
 
 import com.example.motorzone.exceptions.*;
-import com.example.motorzone.models.dto.car.CarOfferDetailsDTO;
-import com.example.motorzone.models.dto.car.CreateCarOfferDTO;
-import com.example.motorzone.models.dto.car.UpdateCarOfferDTO;
+import com.example.motorzone.models.dto.car.*;
+import com.example.motorzone.models.entities.car.CarImage;
 import com.example.motorzone.models.entities.car.CarOffer;
 import com.example.motorzone.models.entities.Model;
 import com.example.motorzone.models.entities.User.User;
 import com.example.motorzone.models.enums.*;
+import com.example.motorzone.models.projections.CarOfferWithSellerProjection;
+import com.example.motorzone.repositories.CarImageRepository;
 import com.example.motorzone.repositories.CarOfferRepository;
 import com.example.motorzone.repositories.ModelRepository;
-import com.example.motorzone.repositories.UserRepository;
 import com.example.motorzone.services.CarOfferService;
+import com.example.motorzone.specifications.CarOfferSpecification;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CarOfferServiceImpl implements CarOfferService {
 
     private final CarOfferRepository carOfferRepository;
+
     private final ModelRepository modelRepository;
+
     private final ModelMapper modelMapper;
+
     private final CurrentUserServiceImpl currentUserService;
+
     private final EnumParserServiceImpl enumParserService;
 
+    private final CloudinaryServiceImpl cloudinaryService;
+
+    private final CarImageRepository carImageRepository;
 
     @Autowired
-    public CarOfferServiceImpl(CarOfferRepository carOfferRepository, ModelMapper modelMapper, CurrentUserServiceImpl currentUserService, ModelRepository modelRepository, EnumParserServiceImpl enumParserService) {
+    public CarOfferServiceImpl(CarOfferRepository carOfferRepository, ModelMapper modelMapper, CurrentUserServiceImpl currentUserService, ModelRepository modelRepository, EnumParserServiceImpl enumParserService, CloudinaryServiceImpl cloudinaryService, CarImageRepository carImageRepository) {
         this.carOfferRepository = carOfferRepository;
         this.modelMapper = modelMapper;
         this.currentUserService = currentUserService;
         this.modelRepository = modelRepository;
         this.enumParserService = enumParserService;
+        this.cloudinaryService = cloudinaryService;
+        this.carImageRepository = carImageRepository;
     }
 
+    @Override
+    public Page<CarBasicOfferDetailsDTO> searchCarOffers(String brand, String model, String category, String city, Integer minYear, Integer maxYear, Double minPrice, Double maxPrice, Long minDisplacement, Long maxDisplacement, Long minHorsePower, Long maxHorsePower, String vehicleCondition, PageRequest pageRequest) {
+        Specification<CarOffer> spec = Specification.where(CarOfferSpecification.hasBrand(brand))
+                .and(CarOfferSpecification.hasModel(model))
+                .and(CarOfferSpecification.hasCategory(category))
+                .and(CarOfferSpecification.hasCity(city))
+                .and(CarOfferSpecification.yearBetween(minYear, maxYear))
+                .and(CarOfferSpecification.priceBetween(minPrice, maxPrice))
+                .and(CarOfferSpecification.displacementBetween(minDisplacement, maxDisplacement))
+                .and(CarOfferSpecification.horsePowerBetween(minHorsePower, maxHorsePower))
+                .and(CarOfferSpecification.hasVehicleCondition(vehicleCondition));
+
+        return carOfferRepository.findAll(spec, pageRequest)
+                .map(carOffer -> modelMapper.map(carOffer, CarBasicOfferDetailsDTO.class));
+    }
+
+    @Override
     public CarOfferDetailsDTO getById(Long id) {
         Optional<CarOffer> optionalCarOffer = carOfferRepository.findById(id);
 
@@ -178,6 +210,51 @@ public class CarOfferServiceImpl implements CarOfferService {
         carOfferRepository.save(carOffer);
 
         return modelMapper.map(carOffer, CarOfferDetailsDTO.class);
+    }
+
+    @Override
+    @Transactional
+    public CarOfferImagesDTO uploadImages(Long id, UploadCarOfferImageDTO imagesDto) {
+        Optional<CarOfferWithSellerProjection> optionalCarOfferData = carOfferRepository.getIdAndSellerIdById(id);
+
+        if (optionalCarOfferData.isEmpty()) {
+            throw new CarOfferNotFoundException("Car offer with id " + id + " does not exists!");
+        }
+
+        CarOfferWithSellerProjection carOfferData = optionalCarOfferData.get();
+        User currentUser = currentUserService.getCurrentUser();
+
+        if (carOfferData.getSellerId() == null || !currentUser.getId().equals(carOfferData.getSellerId())) {
+            throw new CarOfferNotFoundException("Car offer with id " + id + " does not exists!");
+        }
+
+        List<String> imageUrls = cloudinaryService.uploadImages(imagesDto.getImages());
+
+        if (imageUrls.isEmpty()) {
+            throw new RuntimeException("Sorry but we can't upload the files you requested.");
+        }
+
+        CarOffer carOffer = modelMapper.map(carOfferData, CarOffer.class);
+        List<String> carImageUrls = new ArrayList<>();
+
+        List<CarImage> carImageEntities =  imageUrls.stream().map(img -> {
+            CarImage newEntity = new CarImage();
+            newEntity.setImageUrl(img);
+            newEntity.setCarOffer(carOffer);
+            newEntity.setMainImage(false);
+
+            carImageUrls.add(img);
+
+            return newEntity;
+        }).toList();
+
+        carImageRepository.saveAll(carImageEntities);
+
+        CarOfferImagesDTO carOfferDto = new CarOfferImagesDTO();
+        carOfferDto.setId(id);
+        carOfferDto.setImageUrls(carImageUrls);
+
+        return carOfferDto;
     }
 
     @Override
