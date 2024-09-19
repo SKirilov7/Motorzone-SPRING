@@ -8,6 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class CloudinaryServiceImpl {
@@ -35,4 +38,21 @@ public class CloudinaryServiceImpl {
 
         return url;
     }
+
+    public List<String> uploadImages(List<MultipartFile> files) {
+        List<CompletableFuture<String>> allUploads = files.stream()
+                .map(file -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return uploadImage(file);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to upload file: " + file.getOriginalFilename(), e);
+                    }
+                }))
+                .toList();
+
+        return allUploads.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.motorzone.config;
 
+import com.example.motorzone.models.dto.car.CarBasicOfferDetailsDTO;
 import com.example.motorzone.models.dto.car.CarOfferDetailsDTO;
 import com.example.motorzone.models.entities.car.CarOffer;
 import org.modelmapper.ModelMapper;
@@ -20,6 +21,14 @@ public class ModelMapperConfig {
             @Override
             protected void configure() {
                 map(source.getModel().getId(), destination.getModelId());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<CarOffer, CarBasicOfferDetailsDTO>() {
+            @Override
+            protected void configure() {
+                map(source.getModel().getName(), destination.getModelName());
+                map(source.getModel().getBrand().getName(), destination.getBrandName());
             }
         });
 

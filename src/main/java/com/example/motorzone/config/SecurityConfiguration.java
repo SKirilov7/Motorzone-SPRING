@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/brands").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/models", "/api/models/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/models").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/offers/cars/**").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

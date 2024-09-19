@@ -7,40 +7,41 @@ import java.util.List;
 
 public class CarOfferDetailsDTO {
 
-    Long id;
-    String category;
+    private Long id;
+
+    private String category;
 
     @JsonProperty("model_id")
-    Long modelId;
+    private Long modelId;
 
     @JsonProperty("month_of_manufacture")
-    String monthOfManufacture;
+    private String monthOfManufacture;
 
     @JsonProperty("year_of_manufacture")
-    Long yearOfManufacture;
+    private Long yearOfManufacture;
 
     @JsonProperty("engine_type")
-    String engineType;
+    private String engineType;
 
     @JsonProperty("horse_power")
-    Integer horsePower;
+    private Integer horsePower;
 
-    BigDecimal displacement;
+    private BigDecimal displacement;
 
     @JsonProperty("euro_standard")
-    String euroStandard;
+    private String euroStandard;
 
-    String city;
+    private String city;
 
     @JsonProperty("vin_number")
-    String vinNumber;
+    private String vinNumber;
 
     @JsonProperty("vehicle_condition")
-    String vehicleCondition;
+    private String vehicleCondition;
 
-    BigDecimal price;
+    private BigDecimal price;
 
-    List<String> extras;
+    private List<String> extras;
 
     public CarOfferDetailsDTO() {}
 

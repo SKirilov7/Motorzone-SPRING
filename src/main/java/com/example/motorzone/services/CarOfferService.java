@@ -1,8 +1,8 @@
 package com.example.motorzone.services;
 
-import com.example.motorzone.models.dto.car.CarOfferDetailsDTO;
-import com.example.motorzone.models.dto.car.CreateCarOfferDTO;
-import com.example.motorzone.models.dto.car.UpdateCarOfferDTO;
+import com.example.motorzone.models.dto.car.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 public interface CarOfferService {
 
@@ -10,7 +10,11 @@ public interface CarOfferService {
 
     CarOfferDetailsDTO create(CreateCarOfferDTO carOfferDto);
 
-    CarOfferDetailsDTO update(Long id, UpdateCarOfferDTO carOfferDTO);
+    CarOfferDetailsDTO update(Long id, UpdateCarOfferDTO carOfferDto);
+
+    CarOfferImagesDTO uploadImages(Long id, UploadCarOfferImageDTO imagesDto);
 
     void deleteById(Long id);
+
+    Page<CarBasicOfferDetailsDTO> searchCarOffers(String brand, String model, String category, String city, Integer minYear, Integer maxYear, Double minPrice, Double maxPrice, Long minDisplacement, Long maxDisplacement, Long minHorsePower, Long maxHorsePower, String vehicleCondition, PageRequest of);
 }

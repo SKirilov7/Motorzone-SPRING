@@ -11,9 +11,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -93,6 +93,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<String> handleDisabledException(DisabledException ex) {
         return new ResponseEntity<>("The account you try to use is disabled.", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleValidationException(HandlerMethodValidationException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getAllValidationResults().forEach(validationResult -> {
+            String field = validationResult.getMethodParameter().getParameterName();
+
+            validationResult.getResolvableErrors().forEach(resolvableError -> {
+                String message = resolvableError.getDefaultMessage();
+
+                if (message != null) {
+                    errors.put(field, message);
+                } else {
+                    errors.put(field, "Validation error");
+                }
+            });
+        });
+
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
 }
