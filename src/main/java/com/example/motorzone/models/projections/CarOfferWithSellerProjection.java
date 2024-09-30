@@ -4,4 +4,5 @@ public interface CarOfferWithSellerProjection {
     Long getId();
 
     Long getSellerId();
+
 }
