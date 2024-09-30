@@ -2,11 +2,13 @@ package com.example.motorzone.services.impl;
 
 import com.example.motorzone.exceptions.*;
 import com.example.motorzone.models.dto.car.*;
+import com.example.motorzone.models.dto.cloudinary.CloudinaryUploadResultDTO;
 import com.example.motorzone.models.entities.car.CarImage;
 import com.example.motorzone.models.entities.car.CarOffer;
 import com.example.motorzone.models.entities.Model;
 import com.example.motorzone.models.entities.User.User;
 import com.example.motorzone.models.enums.*;
+import com.example.motorzone.models.projections.CarImageIdAndPublicIdProjection;
 import com.example.motorzone.models.projections.CarOfferWithSellerProjection;
 import com.example.motorzone.repositories.CarImageRepository;
 import com.example.motorzone.repositories.CarOfferRepository;
@@ -228,23 +230,23 @@ public class CarOfferServiceImpl implements CarOfferService {
             throw new CarOfferNotFoundException("Car offer with id " + id + " does not exists!");
         }
 
-        List<String> imageUrls = cloudinaryService.uploadImages(imagesDto.getImages());
+        List<CloudinaryUploadResultDTO> cloudinaryDtos = cloudinaryService.uploadImages(imagesDto.getImages());
 
-        if (imageUrls.isEmpty()) {
+        if (cloudinaryDtos.isEmpty()) {
             throw new RuntimeException("Sorry but we can't upload the files you requested.");
         }
 
         CarOffer carOffer = modelMapper.map(carOfferData, CarOffer.class);
         List<String> carImageUrls = new ArrayList<>();
 
-        List<CarImage> carImageEntities =  imageUrls.stream().map(img -> {
+        List<CarImage> carImageEntities =  cloudinaryDtos.stream().map(cloudinaryDto -> {
             CarImage newEntity = new CarImage();
-            newEntity.setImageUrl(img);
+            newEntity.setImageUrl(cloudinaryDto.getUrl());
+            newEntity.setPublicId(cloudinaryDto.getPublicId());
             newEntity.setCarOffer(carOffer);
             newEntity.setMainImage(false);
 
-            carImageUrls.add(img);
-
+            carImageUrls.add(cloudinaryDto.getUrl());
             return newEntity;
         }).toList();
 
@@ -255,6 +257,45 @@ public class CarOfferServiceImpl implements CarOfferService {
         carOfferDto.setImageUrls(carImageUrls);
 
         return carOfferDto;
+    }
+
+    @Override
+    @Transactional
+    public void removeImages(Long carOfferId, CarOfferImagesRemoveDTO imagesDto) {
+        Optional<CarOfferWithSellerProjection> optionalCarOfferData = carOfferRepository.getIdAndSellerIdById(carOfferId);
+
+        if (optionalCarOfferData.isEmpty()) {
+            throw new CarOfferNotFoundException("Car offer with id " + carOfferId + " does not exists!");
+        }
+
+        CarOfferWithSellerProjection carOfferData = optionalCarOfferData.get();
+        User currentUser = currentUserService.getCurrentUser();
+
+        if (carOfferData.getSellerId() == null || !currentUser.getId().equals(carOfferData.getSellerId())) {
+            throw new CarOfferNotFoundException("Car offer with id " + carOfferId + " does not exists!");
+        }
+
+        List<CarImageIdAndPublicIdProjection> carImagesData = carImageRepository.getIdAndPublicIdByCarOfferId(carOfferId);
+
+        List<Long> imageIds = imagesDto.getImageIds();
+        List<Long> notExistingImageIds = new ArrayList<>(imageIds);
+
+        List<String> publicIds = new ArrayList<>();
+
+        carImagesData.forEach(dto -> {
+            publicIds.add(dto.getPublicId());
+
+            notExistingImageIds.remove(dto.getId());
+        });
+
+        notExistingImageIds.forEach(imageId -> {
+            throw new CarOfferImageNotFoundException("A car image with id " + imageId + " for offer with id " + carOfferId + " does not exist!");
+        });
+
+        if (!publicIds.isEmpty()) {
+            cloudinaryService.deleteImages(publicIds);
+            carImageRepository.deleteByIdsAndCarOfferId(imageIds, carOfferId);
+        }
     }
 
     @Override

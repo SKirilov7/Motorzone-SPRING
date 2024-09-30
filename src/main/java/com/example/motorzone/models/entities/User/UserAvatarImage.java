@@ -17,6 +17,9 @@ public class UserAvatarImage {
     @Column(name = "url_image")
     private String url;
 
+    @Column(name = "public_id")
+    private String publicId;
+
     public UserAvatarImage() {}
 
     public Long getId() {
@@ -43,6 +46,15 @@ public class UserAvatarImage {
 
     public UserAvatarImage setUrl(String url) {
         this.url = url;
+        return this;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public UserAvatarImage setPublicId(String publicId) {
+        this.publicId = publicId;
         return this;
     }
 

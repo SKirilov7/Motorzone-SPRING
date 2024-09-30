@@ -3,6 +3,7 @@ package com.example.motorzone.services.impl;
 import com.example.motorzone.exceptions.GenericDoNotHavePermissionsException;
 import com.example.motorzone.exceptions.UserNotFoundException;
 import com.example.motorzone.exceptions.UserPasswordsDoesNotMatchException;
+import com.example.motorzone.models.dto.cloudinary.CloudinaryUploadResultDTO;
 import com.example.motorzone.models.dto.user.UpdateUserDTO;
 import com.example.motorzone.models.dto.user.UploadUserAvatarDTO;
 import com.example.motorzone.models.dto.user.UserBasicAvatarDTO;
@@ -108,14 +109,14 @@ public class UserServiceImpl implements UserService {
             throw new GenericDoNotHavePermissionsException("You can not delete user with id " + id + " as you don't have permissions");
         }
 
-        String imageUrl = "";
+        CloudinaryUploadResultDTO cloudinaryDTO;
         try {
-            imageUrl = cloudinaryService.uploadImage(userAvatarDto.getImg());
+            cloudinaryDTO = cloudinaryService.uploadImage(userAvatarDto.getImg());
         } catch (IOException e) {
             throw new RuntimeException("Sorry but we can't upload the file you requested.");
         }
 
-        if (imageUrl.isBlank()) {
+        if (cloudinaryDTO.getUrl().isBlank() || cloudinaryDTO.getPublicId().isBlank()) {
             throw new RuntimeException("Sorry but we can't upload the file you requested.");
         }
 
@@ -129,22 +130,30 @@ public class UserServiceImpl implements UserService {
 
         if (user.getAvatar() != null) {
             UserAvatarImage existingUserAvatar = user.getAvatar();
+
+            if (!cloudinaryService.deleteImageByPublicId(existingUserAvatar.getPublicId())) {
+                // log unsuccessfully deletion of an old image...
+            }
+
             existingUserAvatar
                     .setId(user.getAvatar().getId())
                     .setName(userAvatarDto.getImg().getOriginalFilename())
-                    .setUrl(imageUrl);
+                    .setUrl(cloudinaryDTO.getUrl())
+                    .setPublicId(cloudinaryDTO.getPublicId());
 
             userAvatarRepository.save(existingUserAvatar);
         } else {
             UserAvatarImage newAvatar = new UserAvatarImage();
             newAvatar
                     .setName(userAvatarDto.getImg().getOriginalFilename())
-                    .setUrl(imageUrl);
+                    .setUrl(cloudinaryDTO.getUrl())
+                    .setPublicId(cloudinaryDTO.getPublicId());
 
             UserAvatarImage userImage = userAvatarRepository.save(newAvatar);
             userRepository.updateUserAvatar(id, userImage);
         }
 
-        return new UserBasicAvatarDTO(id, userAvatarDto.getImg().getOriginalFilename(), imageUrl);
+        return new UserBasicAvatarDTO(id, userAvatarDto.getImg().getOriginalFilename(), cloudinaryDTO.getUrl());
     }
+
 }

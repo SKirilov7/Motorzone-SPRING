@@ -14,6 +14,8 @@ public interface CarOfferService {
 
     CarOfferImagesDTO uploadImages(Long id, UploadCarOfferImageDTO imagesDto);
 
+    void removeImages(Long carOfferId, CarOfferImagesRemoveDTO imagesDto);
+
     void deleteById(Long id);
 
     Page<CarBasicOfferDetailsDTO> searchCarOffers(String brand, String model, String category, String city, Integer minYear, Integer maxYear, Double minPrice, Double maxPrice, Long minDisplacement, Long maxDisplacement, Long minHorsePower, Long maxHorsePower, String vehicleCondition, PageRequest of);

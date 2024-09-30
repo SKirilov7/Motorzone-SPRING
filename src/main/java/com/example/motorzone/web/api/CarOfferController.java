@@ -97,6 +97,13 @@ public class CarOfferController {
         return new ResponseEntity<>(carOfferService.uploadImages(id, imagesDto), HttpStatus.OK);
     }
 
+    @PatchMapping("/{id}/images/remove")
+    public ResponseEntity<Void> removeImages(@PathVariable("id") Long carOfferId, @Valid @RequestBody CarOfferImagesRemoveDTO carImagesDTO) {
+        carOfferService.removeImages(carOfferId, carImagesDTO);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCar(@PathVariable Long id) {
         carOfferService.deleteById(id);

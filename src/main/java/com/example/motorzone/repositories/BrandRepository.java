@@ -14,8 +14,6 @@ import java.util.Optional;
 public interface BrandRepository extends JpaRepository<Brand, Long> {
     Optional<Brand> findByName(String name);
 
-
-
     @Query("SELECT new com.example.motorzone.models.dto.brand.BrandDTO(b.id, b.name) FROM Brand b")
     List<BrandDTO> findAllBrandDTOs();
 }

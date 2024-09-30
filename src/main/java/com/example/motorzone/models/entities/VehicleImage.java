@@ -8,6 +8,9 @@ public class VehicleImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
+    @Column(name = "public_id", nullable = false)
+    private String publicId;
+
     @Column(name = "is_main_image", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private Boolean isMainImage;
 
@@ -19,6 +22,15 @@ public class VehicleImage {
 
     public VehicleImage setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+        return this;
+    }
+
+    public String getPublicId() {
+        return publicId;
+    }
+
+    public VehicleImage setPublicId(String publicId) {
+        this.publicId = publicId;
         return this;
     }
 

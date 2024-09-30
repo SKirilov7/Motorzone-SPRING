@@ -26,7 +26,11 @@ public class UploadUserAvatarDTO {
 
     @AssertTrue(message = "Only image files(jpeg/png) are allowed")
     public boolean isValidImg() {
-        return contentTypes.contains(img.getContentType());
+        if (img == null) {
+            return false;
+        }
+
+        return contentTypes.contains(this.img.getContentType());
     }
 
 }

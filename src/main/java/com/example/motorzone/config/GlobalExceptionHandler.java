@@ -116,4 +116,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(CarOfferImageNotFoundException.class)
+    public ResponseEntity<String> handleCarOfferImageNotFoundException(CarOfferImageNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
 }
