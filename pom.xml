@@ -11,6 +11,7 @@
 	<groupId>com.example</groupId>
 	<artifactId>motorzone</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 	<name>motorzone</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -20,6 +21,10 @@
 	<developers>
 		<developer/>
 	</developers>
+	<modules>
+		<module>kafka-email-sender</module>
+		<module>motorzone-app</module>
+	</modules>
 	<scm>
 		<connection/>
 		<developerConnection/>
@@ -36,17 +41,9 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<!-- Spring Data JPA for database access -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-
-		<!-- Spring Boot Thymeleaf for server-side rendering -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
 		<!-- Spring Web for building web applications and RESTful services -->
@@ -89,12 +86,6 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- MySQL Connector for MySQL database -->
-		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 
 		<!-- Spring Boot Starter Test for testing -->
 		<dependency>
@@ -131,6 +122,17 @@
 			<groupId>com.cloudinary</groupId>
 			<artifactId>cloudinary-http44</artifactId>
 			<version>1.36.0</version>
+		</dependency>
+
+		<!-- Spring Kafka Starter -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
 		</dependency>
 
 	</dependencies>

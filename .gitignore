@@ -25,7 +25,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-src/main/resources/env.properties
+motorzone-app/src/main/resources/env.properties
+kafka-email-sender/src/main/resources/env.properties
 
 ### VS Code ###
 .vscode/
