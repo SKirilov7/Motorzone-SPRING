@@ -36,6 +36,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(BrandNotExistingException.class)
+    public ResponseEntity<String> handleBrandNotExistingException(BrandNotExistingException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(ModelNotExistingException.class)
     public ResponseEntity<String> handleModelNotExistingExceptionException(ModelNotExistingException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
