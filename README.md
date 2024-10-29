@@ -6,8 +6,8 @@ The application employs JWT (JSON Web Token) for authentication and authorizatio
 Data Caching:
 To optimize performance, the application implements caching for rarely updated data. Only administrators have permission to update these cached items, and upon any update, the cache is cleared and regenerated. Otherwise, data is served directly from the existing cache, significantly enhancing response times.
 
-Database:
-A MySQL database underpins the application, storing all relevant data for vehicle listings, user details, and additional information. The database schema is designed to facilitate efficient querying and data integrity across various operations.
+Database and Data Access:
+The application relies on a MySQL database to store all relevant data, including vehicle listings and user information. For data access, Spring Data JPA is used extensively, with a focus on optimizing data retrieval processes. Custom, hand-written queries are often employed to ensure optimal performance for complex data retrieval, reducing load and enhancing efficiency when interacting with the database.
 
 Architecture and Kafka Integration:
 Following a monolithic architecture, the application also includes a dedicated module to demonstrate the use of Kafka for event-driven communication. The modules share a common parent POM, with Kafka implemented to handle scheduled expiration events. A scheduler runs every five minutes to check for any listings that expired within the previous five minutes. For any expired listings, an event is sent through Kafka to a consumer module, which in turn sends a notification email to the respective user, informing them of their listing’s expiration.
@@ -26,4 +26,3 @@ Entity classes are thoroughly validated, while projections are employed for spec
 
 Global Exception Handling:
 A Global Exception Handler manages errors thrown in the service layer, providing consistent and informative error responses. This standardized error handling mechanism enhances the API’s robustness and improves client-side error management.
-
